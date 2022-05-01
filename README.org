@@ -143,9 +143,9 @@
        '((rust-mode . "RUST_BACKTRACE=1 cargo build"))
        ))
 
-     (global-set-key [f5] 'schlau-compile)
-     (global-set-key [f6] 'recompile)
-     (global-set-key [C-f6] 'kill-compilation)
+     (global-set-key [F5] 'schlau-compile-compile)
+     (global-set-key [f6] 'schlau-compile-query)
+     (global-set-key [C-F6] 'kill-compilation)
      #+end_src
 
      And you will also note the last 3 lines setting up a key mapping,
