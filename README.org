@@ -1,13 +1,14 @@
 * schlau-compile                                                   :TOC_5_gh:
   - [[#synopsis][Synopsis]]
   - [[#author][Author]]
+  - [[#version][Version]]
   - [[#acknowledgements][Acknowledgements]]
   - [[#lisense][Lisense]]
   - [[#documentation][Documentation]]
     - [[#configuring-your-own-macros-advanced-setup][Configuring your own macros, advanced setup]]
     - [[#string---macos][String %- Macos]]
     - [[#simple-setup-example-for-your-emacs-file][Simple setup example for your .emacs file]]
-  - [[#future-enhancement-possibilities][Future enhancement possibilities]]
+  - [[#recent-changes][Recent changes]]
 
 ** Synopsis
    A utility to allow you to configure
@@ -16,13 +17,16 @@
 ** Author
    Fred Mitchell
 
+** Version   
+   1.0.0
+
 ** Acknowledgements
    Forked from the original "Smart Compile" by Seiji Zenitani 
    at https://github.com/zenitani/elisp. To avoid namespace
    collisions, all symbols have been renamed. So, you can use
    both schlau-compile and smart-compile at the same time, 
-   but then why would you want to? We've added features
-   that smart-compile does not yet support.
+   but then why would you want to? We've added features and changed
+   the workflow that goes beyond  smart-compile.
 
    Contributers to the orginal smart-compile:
    Seiji Zenitani, Sakito Hisakura, and Greg Pfell
@@ -58,9 +62,14 @@
 (defconst rustmake "RUST_BACKTRACE=1 ~/.cargo/bin/cargo build && ~/.cargo/bin/cargo test -- --nocapture")
 (defconst rubymake "rake build")
 (defconst gomake  "export GOPATH=/development/go ; go install ./... && go test -v && go vet")
+(defconst hackage "cd %G && stack build --allow-different-user && stack test")
 
 (setq schlau-compile-alist
       (append
+       ;; build Haskell
+       (eval `'((haskell-mode  . ,hackage)))
+       (eval `'((yaml-mode     . ,hackage)))
+
        ;; compile Go
        (eval `'((go-mode . ,gomake)))
 
@@ -76,13 +85,13 @@
        (eval `'((ruby-mode  . ,rubymake)))
        ))
 
-(global-set-key [f5] 'schlau-compile)
-(global-set-key [f6] 'recompile)
+(global-set-key [f5] 'schlau-compile-compile)
+(global-set-key [f6] 'schlau-compile-query)
 (global-set-key [C-f6] 'kill-compilation)
     #+end_src
 
     You will note that I have configured a few languages; C++ (using CMake,
-    both make and ninja), Rust, Ruby, and Go.
+    both make and ninja), Haskell, Rust, Ruby, and Go.
 
     Note that the actual compile macros are defined as defconsts,
     and that the actual schlau-compile-alist references defconst. We
@@ -91,9 +100,16 @@
     and in the case for Rust, the Rust source code and the Cargo.toml
     file that builds them. This is in keeping with the DRY principle.
 
-    Hotkeys F5 provide the actual resolved macro compile string, allowing you to
-    make temporary modifications to it before you compile. Subsequently,
-    you can hit F6 to run the the compile string without the edit step.
+    Hotkeys:
+    + F5 will compile using either the default string as determined
+      from the alist, or from your modified compile string you made from F6.
+    + F6 provide you with the actual resolved macro compile string, first,
+      allowing you to make temporary modifications to it before you compile. Subsequently,
+      you can hit F5 to run the the modified compile string.
+      
+      Note that your F6 modifications will only persist during the life of the
+      emacs session and will not be permanent. Make any permanent modifications
+      to the defconst macros in your configuration.
     
 *** String %- Macos
      Alist of filename patterns vs corresponding format control strings.
@@ -135,12 +151,7 @@
      And you will also note the last 3 lines setting up a key mapping,
      which you are of course free to change to your own liking.
 
-** Future enhancement possibilities
-   I personally don't like having to do an F5 on the first 
-   compile. F6 should default to the initial string. Currently
-   that is not the behavior.
-
-   If you also would like to see this, please let me know, and I
-   will bump up the priority of doing this. Subsequently, you can do
-   a pull request.
-
+** Recent changes
+   I changed the way F5 and F6 keys work. You will always get a meaningful
+   compile string, and F6 is now used to modify the string before the compilation,
+   wheras before F5 did that (and F6 did not default to anything meaningful.)

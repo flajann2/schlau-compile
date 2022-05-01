@@ -2,7 +2,7 @@
 ;; URL: https://github.com/flajann2/elisp#schlau-compile
 ;; Version: 20200201
 
-;; Copyright (C) 2018-2020 by Fred Mitchell
+;; Copyright (C) 2018-2022 by Fred Mitchell
 ;; Copyright (C) 1998-2017 by Seiji Zenitani
 
 ;; Author: Fred Mitchell <fred.mitchell@gmx.de>
@@ -11,7 +11,8 @@
 ;; Compatibility: Emacs 24 or later
 ;; URL(en): https://github.com/flajann2/elisp/blob/master/schlau-compile.el
 
-;; Contributors: Seiji Zenitani, Sakito Hisakura, Greg Pfell
+;; Contributors: Fred Mitchell
+;; smart-compile contribtors: Seiji Zenitani, Sakito Hisakura, Greg Pfell
 
 ;; Please refer to the README.org for the actual documentation.
 
@@ -37,7 +38,9 @@
 ;;; Commentary:
 
 ;; This package provides `schlau-compile' function. It was derived from
-;; 'smart-compile'.
+;; 'smart-compile'. However, the modifications that exist here, including
+;; change in the overall functionality and workflow, are no longer upstreamable
+;; and should be considered a completely seprate project.
 ;;
 ;; You can associate a particular file with a particular compile function,
 ;; by editing `schlau-compile-alist'.
@@ -119,7 +122,7 @@ evaluate FUNCTION instead of running a compilation command.
   "Alist of %-sequences for format control strings in `schlau-compile-alist'.")
 (put 'schlau-compile-replace-alist 'risky-local-variable t)
 
-(defvar schlau-compile-check-makefile t)
+(defvar schlau-compile-check-makefile nil)
 (make-variable-buffer-local 'schlau-compile-check-makefile)
 
 (defcustom schlau-compile-make-program "make "
@@ -146,14 +149,13 @@ which is defined in `schlau-compile-alist'."
 ;;     (message (number-to-string arg))
 
     (cond
-
      ;; local command
      ;; The prefix 4 (C-u M-x schlau-compile) skips this section
      ;; in order to re-generate the compile-command
      ((and (not (= arg 4)) ; C-u M-x schlau-compile
            (local-variable-p 'compile-command)
            compile-command)
-      (call-interactively 'compile)
+      (schlau-compile-compile-it)
       (setq not-yet nil)
       )
 
@@ -164,7 +166,7 @@ which is defined in `schlau-compile-alist'."
       (if (y-or-n-p "Makefile is found.  Try 'make'? ")
           (progn
             (set (make-local-variable 'compile-command) "make ")
-            (call-interactively 'compile)
+            (schlau-compile-compile-it)
             (setq not-yet nil)
             )
         (setq schlau-compile-check-makefile nil)))
@@ -188,7 +190,7 @@ which is defined in `schlau-compile-alist'."
                   (progn
                     (set (make-local-variable 'compile-command)
                          (schlau-compile-string function))
-                    (call-interactively 'compile)
+                    (schlau-compile-compile-it)
                     )
                 (if (listp function)
                     (eval function)
@@ -216,8 +218,8 @@ which is defined in `schlau-compile-alist'."
       )
     
     ;; compile
-    (if not-yet (call-interactively 'compile) )
-
+    (if not-yet (schlau-compile-compile-it) )
+    
     ))
 
 (defun schlau-compile-string (format-string)
@@ -252,6 +254,30 @@ which is defined in `schlau-compile-alist'."
   "find the root git path of the current
   project (assuming you are using git)"
   (schlau-compile-project-path buffer-file-name ".git"))
+
+(defun schlau-compile-compile-it ()
+  "Will either compile or recompile
+   depending on schlau-recompile-it"
+  (if schlau-recompile-it
+      (call-interactively 'recompile)
+    (call-interactively 'compile))
+  )
+
+;;;###autoload
+(defun schlau-compile-query ()
+  "Allow user to alter compile commands"
+  (interactive)
+  (setq schlau-recompile-it nil)
+  (call-interactively 'schlau-compile)
+  )
+
+;;;###autoload
+(defun schlau-compile-compile ()
+  "Compile with the previous or default compile commands"
+  (interactive)
+  (setq schlau-recompile-it t)
+  (call-interactively 'schlau-compile)
+  )
 
 (provide 'schlau-compile)
 ;;; schlau-compile.el ends here
