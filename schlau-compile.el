@@ -1,56 +1,69 @@
 ;;; schlau-compile.el --- an interface to `compile'
-;; URL: https://github.com/flajann2/elisp#schlau-compile
-;; Version: 20200201
+;; URL: https://github.com/flajann2/schlau-compile
+;; Version: 1.0.0
 
-;; Copyright (C) 2018-2022 by Fred Mitchell
-;; Copyright (C) 1998-2017 by Seiji Zenitani
+;; Copyright (C) 2018-2026 Fred Mitchell
 
 ;; Author: Fred Mitchell <fred.mitchell@gmx.de>
-;; Keywords: tools, unix, git
-;; Created: 2018-01-14
-;; Compatibility: Emacs 24 or later
-;; URL(en): https://github.com/flajann2/elisp/blob/master/schlau-compile.el
+;; Maintainer: Fred Mitchell <fred.mitchell@gmx.de>
+;; URL: https://github.com/flajann2/elisp
+;; Version: 1.0.0
+;; Package-Requires: ((emacs "24.1"))
+;; Keywords: tools, unix, processes
 
-;; Contributors: Fred Mitchell
-;; smart-compile contribtors: Seiji Zenitani, Sakito Hisakura, Greg Pfell
+;; This file is not part of GNU Emacs.
 
-;; Please refer to the README.org for the actual documentation.
+;; This file is derived from `smart-compile.el' by Seiji Zenitani,
+;; with contributions from Sakito Hisakura and Greg Pfell.
+;; Copyright (C) 1998-2017 Seiji Zenitani <zenitani@mac.com>
+;; Original: https://github.com/zenitani/elisp
 
-;; This file is free software; you can redistribute it and/or modify
+;; All symbols were renamed from `smart-compile-*' to `schlau-compile-*'
+;; to avoid namespace collisions, so both packages may be installed and
+;; used side by side.
+
+;; This program is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation; either version 3, or (at your option)
-;; any later version.
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
 
-;; The enhancements made by Fred Mitchell are released under the
-;; MIT license..
-
-;; This file is distributed in the hope that it will be useful,
+;; This program is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
-;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PUR:wqPOSE.  See the
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-;; Boston, MA 02110-1301, USA.
-;; See also the MIT license.
+;; along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
-;; This package provides `schlau-compile' function. It was derived from
-;; 'smart-compile'. However, the modifications that exist here, including
-;; change in the overall functionality and workflow, are no longer upstreamable
-;; and should be considered a completely seprate project.
+;; schlau-compile ("schlau" is German for "smart") is a `compile'
+;; front end derived from `smart-compile', diverging from it in three
+;; ways:
 ;;
-;; You can associate a particular file with a particular compile function,
-;; by editing `schlau-compile-alist'.
+;; - Git-root awareness: the %G format sequence expands to the root
+;;   of the current Git project, so compile commands can `cd' there
+;;   before running, regardless of which file in the tree is current.
+;; - `schlau-compile-compile' (recompile with the last-used command)
+;;   and `schlau-compile-query' (prompt to edit the command first) are
+;;   exposed as separate entry points, rather than one command with a
+;;   prefix-argument toggle.
+;; - `schlau-compile-alist' entries may associate a major mode or
+;;   filename pattern with either a command template string or an
+;;   arbitrary Lisp form to evaluate, as in the original, but this
+;;   fork's alist is meant to be composed by downstream config (e.g.
+;;   per-language `defconst' command templates) rather than edited
+;;   in place.
 ;;
-;; To use this package, add these lines to your .emacs file:
+;; Because of this divergence, and to keep clear which contributions
+;; are whose, this is maintained as an independent package rather than
+;; a pull request against `smart-compile'.
+;;
+;; To use this package, add to your init file:
 ;;     (require 'schlau-compile)
 ;;
-;; Note that it requires emacs 24 or later.
-;;
-;; https://github.com/flajann2/elisp/blob/master/README.org
+;; See README.org in the repository for full documentation and
+;; configuration examples.
 
 ;;; Code:
 
@@ -97,8 +110,7 @@ The following %-sequences will be replaced by:
   %o  value of `schlau-compile-option-string'  ( \"user-defined\" ).
 
 If the second item of the alist element is an emacs-lisp FUNCTION,
-evaluate FUNCTION instead of running a compilation command.
-"
+evaluate FUNCTION instead of running a compilation command."
    :type '(repeat
            (cons
             (choice
@@ -140,7 +152,8 @@ evaluate FUNCTION instead of running a compilation command.
 (defun schlau-compile (&optional arg)
   "An interface to `compile'.
 It calls `compile' or other compile function,
-which is defined in `schlau-compile-alist'."
+which is defined in `schlau-compile-alist'.
+Optional argument ARG "
   (interactive "p")
   (let ((name (buffer-file-name))
         (not-yet t))
