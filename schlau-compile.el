@@ -1,4 +1,5 @@
-;;; schlau-compile.el --- an interface to `compile'
+;;; schlau-compile.el --- Git-root-aware interface to `compile'
+
 ;; URL: https://github.com/flajann2/schlau-compile
 ;; Version: 1.0.0
 
@@ -6,10 +7,10 @@
 
 ;; Author: Fred Mitchell <fred.mitchell@gmx.de>
 ;; Maintainer: Fred Mitchell <fred.mitchell@gmx.de>
-;; URL: https://github.com/flajann2/elisp
+;; URL: https://github.com/flajann2/schlau-compile
 ;; Version: 1.0.0
 ;; Package-Requires: ((emacs "24.1"))
-;; Keywords: tools, unix, processes
+;; Keywords: tools, unix, processes, compile, compilation, workflow, development
 
 ;; This file is not part of GNU Emacs.
 
@@ -93,8 +94,8 @@
   ("\\.rb\\'"         . "ruby %f")
   ("Rakefile\\'"      . "rake")
   ("\\.tex\\'"        . (tex-file))
-  ("\\.texi\\'"       . "makeinfo %f")
-)  "Alist of filename patterns vs corresponding format control strings.
+  ("\\.texi\\'"       . "makeinfo %f"))
+  "Alist of filename patterns vs corresponding format control strings.
 Each element looks like (REGEXP . STRING) or (MAJOR-MODE . STRING).
 Visiting a file whose name matches REGEXP specifies STRING as the
 format control string.  Instead of REGEXP, MAJOR-MODE can also be used.
@@ -124,13 +125,12 @@ evaluate FUNCTION instead of running a compilation command."
 
 (defconst schlau-compile-replace-alist '(
                                         ("%F" . (buffer-file-name))
-                                        ("%G" . (schlau-compile-git-root-path))                                                                                  
+                                        ("%G" . (schlau-compile-git-root-path))
                                         ("%f" . (file-name-nondirectory (buffer-file-name)))
                                         ("%n" . (file-name-sans-extension
                                                  (file-name-nondirectory (buffer-file-name))))
                                         ("%e" . (or (file-name-extension (buffer-file-name)) ""))
-                                        ("%o" . schlau-compile-option-string)
-                                        )
+                                        ("%o" . schlau-compile-option-string))
   "Alist of %-sequences for format control strings in `schlau-compile-alist'.")
 (put 'schlau-compile-replace-alist 'risky-local-variable t)
 
@@ -153,12 +153,12 @@ evaluate FUNCTION instead of running a compilation command."
   "An interface to `compile'.
 It calls `compile' or other compile function,
 which is defined in `schlau-compile-alist'.
-Optional argument ARG "
+Optional argument ARG"
   (interactive "p")
   (let ((name (buffer-file-name))
         (not-yet t))
     
-    (if (not name)(error "cannot get filename."))
+    (if (not name)(error "Cannot get filename"))
 ;;     (message (number-to-string arg))
 
     (cond
@@ -169,8 +169,7 @@ Optional argument ARG "
            (local-variable-p 'compile-command)
            compile-command)
       (schlau-compile-compile-it)
-      (setq not-yet nil)
-      )
+      (setq not-yet nil))
 
      ;; make?
      ((and schlau-compile-check-makefile
@@ -180,39 +179,31 @@ Optional argument ARG "
           (progn
             (set (make-local-variable 'compile-command) "make ")
             (schlau-compile-compile-it)
-            (setq not-yet nil)
-            )
-        (setq schlau-compile-check-makefile nil)))
-
-     ) ;; end of (cond ...)
+            (setq not-yet nil))
+        (setq schlau-compile-check-makefile nil)))) ;; end of (cond ...)
 
     ;; compile
-    (let( (alist schlau-compile-alist) 
+    (let ((alist schlau-compile-alist)
           (case-fold-search nil)
-          (function nil) )
+          (function nil))
       (while (and alist not-yet)
         (if (or
              (and (symbolp (caar alist))
                   (eq (caar alist) major-mode))
              (and (stringp (caar alist))
-                  (string-match (caar alist) name))
-             )
+                  (string-match (caar alist) name)))
             (progn
               (setq function (cdar alist))
               (if (stringp function)
                   (progn
                     (set (make-local-variable 'compile-command)
                          (schlau-compile-string function))
-                    (schlau-compile-compile-it)
-                    )
+                    (schlau-compile-compile-it))
                 (if (listp function)
-                    (eval function)
-                    ))
+                    (eval function)))
               (setq alist nil)
-              (setq not-yet nil)
-              )
-          (setq alist (cdr alist)) )
-        ))
+              (setq not-yet nil))
+          (setq alist (cdr alist)))))
 
     ;; If compile-command is not defined and the contents begins with "#!",
     ;; set compile-command to filename.
@@ -221,22 +212,17 @@ Optional argument ARG "
              (not (string-match "/\\.[^/]+$" name))
              (not
               (and (local-variable-p 'compile-command)
-                   compile-command))
-             )
+                   compile-command)))
         (save-restriction
           (widen)
           (if (equal "#!" (buffer-substring 1 (min 3 (point-max))))
-              (set (make-local-variable 'compile-command) name)
-            ))
-      )
+              (set (make-local-variable 'compile-command) name))))
     
     ;; compile
-    (if not-yet (schlau-compile-compile-it) )
-    
-    ))
+    (if not-yet (schlau-compile-compile-it))))
 
 (defun schlau-compile-string (format-string)
-  "Document forthcoming..."
+  "Document forthcoming.  Argument FORMAT-STRING ."
   (if (and (boundp 'buffer-file-name)
            (stringp buffer-file-name))
       (let ((rlist schlau-compile-replace-alist)
@@ -246,51 +232,43 @@ Optional argument ARG "
             (setq format-string
                   (replace-match
                    (eval (cdar rlist)) t nil format-string)))
-          (setq rlist (cdr rlist))
-          )
-        ))
+          (setq rlist (cdr rlist)))))
   format-string)
 
 (defun schlau-compile-project-path (path key)
-  "traverse up the directory path for key,
-  and either return the path to key or nil."
+  "Traverse up the directory PATH for KEY and either return the path to key or nil."
+  
   (print path #'external-debugging-output)
   (if (file-exists-p (concat path "/" key))
       path
     (if (string= path "/")
         nil
       (schlau-compile-project-path (file-name-directory
-                     (replace-regexp-in-string "\\\/$" ""  path)) key)
-    )))
+                     (replace-regexp-in-string "\\\/$" ""  path)) key))))
 
 (defun schlau-compile-git-root-path ()
-  "find the root git path of the current
-  project (assuming you are using git)"
+  "Find the root git path of the current project -- assuming you are using git."
   (schlau-compile-project-path buffer-file-name ".git"))
 
 (defun schlau-compile-compile-it ()
-  "Will either compile or recompile
-   depending on schlau-recompile-it"
+  "Will either compile or recompile depending on `schlau-recompile-it'."
   (if schlau-recompile-it
       (call-interactively 'recompile)
-    (call-interactively 'compile))
-  )
+    (call-interactively 'compile)))
 
 ;;;###autoload
 (defun schlau-compile-query ()
-  "Allow user to alter compile commands"
+  "Allow user to alter compile commands."
   (interactive)
   (setq schlau-recompile-it nil)
-  (call-interactively 'schlau-compile)
-  )
+  (call-interactively 'schlau-compile))
 
 ;;;###autoload
 (defun schlau-compile-compile ()
-  "Compile with the previous or default compile commands"
+  "Compile with the previous or default compile commands."
   (interactive)
   (setq schlau-recompile-it t)
-  (call-interactively 'schlau-compile)
-  )
+  (call-interactively 'schlau-compile))
 
 (provide 'schlau-compile)
 ;;; schlau-compile.el ends here
