@@ -1,4 +1,4 @@
-;;; schlau-compile.el --- Git-root-aware interface to `compile'
+;;; schlau-compile.el --- Git-root-aware interface to `compile'  -*- lexical-binding: t; -*-
 
 ;; URL: https://github.com/flajann2/schlau-compile
 ;; Version: 1.0.0
@@ -9,7 +9,7 @@
 ;; Maintainer: Fred Mitchell <fred.mitchell@gmx.de>
 ;; URL: https://github.com/flajann2/schlau-compile
 ;; Version: 1.0.0
-;; Package-Requires: ((emacs "24.1"))
+;; Package-Requires: ((emacs "24.3"))
 ;; Keywords: tools, unix, processes, compile, compilation, workflow, development
 
 ;; This file is not part of GNU Emacs.
@@ -18,6 +18,7 @@
 ;; with contributions from Sakito Hisakura and Greg Pfell.
 ;; Copyright (C) 1998-2017 Seiji Zenitani <zenitani@mac.com>
 ;; Original: https://github.com/zenitani/elisp
+;; License: GPL-3.0-or-later
 
 ;; All symbols were renamed from `smart-compile-*' to `schlau-compile-*'
 ;; to avoid namespace collisions, so both packages may be installed and
@@ -67,6 +68,8 @@
 ;; configuration examples.
 
 ;;; Code:
+(require 'compile)
+(declare-function recompile "compile" (&optional exit-status))
 
 (defgroup schlau-compile nil
   "An interface to `compile'."
@@ -134,8 +137,8 @@ evaluate FUNCTION instead of running a compilation command."
   "Alist of %-sequences for format control strings in `schlau-compile-alist'.")
 (put 'schlau-compile-replace-alist 'risky-local-variable t)
 
-(defvar schlau-compile-check-makefile nil)
-(make-variable-buffer-local 'schlau-compile-check-makefile)
+(defvar-local schlau-compile-check-makefile nil
+  "Non-nil if we should check for a Makefile.")
 
 (defcustom schlau-compile-make-program "make "
   "The command by which to invoke the make program."
@@ -147,6 +150,8 @@ evaluate FUNCTION instead of running a compilation command."
   :type 'string
   :group 'schlau-compile)
 
+(defvar-local schlau-compile-recompile-it nil
+  "Non-nil if the current buffer should be recompiled.")
 
 ;;;###autoload
 (defun schlau-compile (&optional arg)
@@ -251,24 +256,24 @@ Optional argument ARG"
   (schlau-compile-project-path buffer-file-name ".git"))
 
 (defun schlau-compile-compile-it ()
-  "Will either compile or recompile depending on `schlau-recompile-it'."
-  (if schlau-recompile-it
-      (call-interactively 'recompile)
-    (call-interactively 'compile)))
+  "Will either compile or recompile depending on `schlau-compile-recompile-it'."
+  (if schlau-compile-recompile-it
+      (call-interactively #'recompile)
+    (call-interactively #'compile)))
 
 ;;;###autoload
 (defun schlau-compile-query ()
   "Allow user to alter compile commands."
   (interactive)
-  (setq schlau-recompile-it nil)
-  (call-interactively 'schlau-compile))
+  (setq schlau-compile-recompile-it nil)
+  (call-interactively #'schlau-compile))
 
 ;;;###autoload
 (defun schlau-compile-compile ()
   "Compile with the previous or default compile commands."
   (interactive)
-  (setq schlau-recompile-it t)
-  (call-interactively 'schlau-compile))
+  (setq schlau-compile-recompile-it t)
+  (call-interactively #'schlau-compile))
 
 (provide 'schlau-compile)
 ;;; schlau-compile.el ends here
