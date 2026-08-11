@@ -117,12 +117,10 @@ If the second item of the alist element is an emacs-lisp FUNCTION,
 evaluate FUNCTION instead of running a compilation command."
    :type '(repeat
            (cons
-            (choice
-             (regexp :tag "Filename pattern")
-             (function :tag "Major-mode"))
-            (choice
-             (string :tag "Compilation command")
-             (sexp :tag "Lisp expression"))))
+            (choice (regexp :tag "Filename pattern")
+                    (symbol :tag "Major-mode"))
+            (choice (string :tag "Compilation command")
+                    (sexp :tag "Lisp expression"))))
    :group 'schlau-compile)
 (put 'schlau-compile-alist 'risky-local-variable t)
 
