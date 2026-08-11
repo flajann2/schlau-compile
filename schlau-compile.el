@@ -69,7 +69,6 @@
 
 ;;; Code:
 (require 'compile)
-;; (declare-function recompile "compile" (&optional exit-status))
 
 (defgroup schlau-compile nil
   "An interface to `compile'."
