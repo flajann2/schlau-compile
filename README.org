@@ -18,7 +18,7 @@
    Fred Mitchell
 
 ** Version   
-   1.0.0
+   1.1.0
 
 ** Acknowledgements
    Forked from the original "Smart Compile" by Seiji Zenitani 
@@ -35,13 +35,10 @@
    Fred Mitchell enhancements and modifications are covered by the MIT license.
    The original code is covered by GPLv3.
 
-   I am no lawyer, but I do all of my OpenSource code under the MIT license without
-   exception.
-
 ** Documentation
    schlau-compile -- the "schlau" part of the name is the German word for "smart".
    
-   schlau-compile's best new featue is that it will look for the root of your
+   schlau-compile's best new feature is that it will look for the root of your
    git project to reference what needs to be compiled underneath. We have
    added macros that allows you to leverage that functionality. 
 
@@ -108,7 +105,7 @@
       you can hit F5 to run the the modified compile string.
       
       Note that your F6 modifications will only persist during the life of the
-      emacs session and will not be permanent. Make any permanent modifications
+      Emacs session and will not be permanent. Make any permanent modifications
       to the defconst macros in your configuration.
     
 *** String %- Macos

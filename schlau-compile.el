@@ -5,14 +5,19 @@
 
 ;; Copyright (C) 2018-2026 Fred Mitchell
 
-;; Author: Fred Mitchell <fred.mitchell@gmx.de>
-;; Maintainer: Fred Mitchell <fred.mitchell@gmx.de>
+;; Author: Fred Mitchell <fred.mitchell@atomlogik.de>
+;; Assisted-by: Claude:Sonnet_5
+;; Maintainer: Fred Mitchell <fred.mitchell@atomlogik.de>
 ;; URL: https://github.com/flajann2/schlau-compile
 ;; Version: 1.0.0
 ;; Package-Requires: ((emacs "24.3"))
 ;; Keywords: tools, unix, processes, compile, compilation, workflow, development
 
 ;; This file is not part of GNU Emacs.
+
+;; Although an LLM assisted in the maintenance of this code,
+;; it was largely used to clean up the code, not to write it.
+;; This code has been modified and written largely by the author.
 
 ;; This file is derived from `smart-compile.el' by Seiji Zenitani,
 ;; with contributions from Sakito Hisakura and Greg Pfell.
